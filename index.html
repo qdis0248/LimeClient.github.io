@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lime Client - best minecraft hack client</title>
+    <style>
+        /* 全局添加平滑滚动动画，实现跳转高度过渡效果 */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        /* 背景代码样式 */
+        .code-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            filter: blur(2px);
+            opacity: 0.8;
+        }
+
+        .code-bg pre {
+            width: 100%;
+            height: 200%; /* 双倍高度实现无限滚动 */
+            color: #ddd;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre;
+            animation: scrollCode 35s linear infinite;
+        }
+
+        @keyframes scrollCode {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); } /* 滚动50%即回到起点，实现无限循环 */
+        }
+
+        /* 代码语法高亮 */
+        .keyword { color: #4a90e2; } /* 低饱和蓝 - 关键字 */
+        .string { color: #e685b5; }  /* 低饱和粉 - 字符串 */
+        .comment { color: #888; }     /* 灰色 - 注释 */
+        .function { color: #3a86ff; } /* 稍亮蓝 - 函数名 */
+        .variable { color: #f77f00; } /* 橙色 - 变量 */
+        .class { color: #61aeee; }    /* 亮蓝 - 类名 */
+
+        /* 顶栏样式 - Lime Client跳转顶部功能 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #8a9fc0; /* 加深低饱和蓝 */
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .navbar-title a {
+            color: white;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.9);
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-title a:hover {
+            transform: scale(1.05);
+        }
+
+        /* 顶栏跳转链接动画 */
+        .navbar-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            position: relative;
+        }
+
+        .navbar-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: white;
+            transition: width 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .navbar-links a:hover {
+            transform: scale(1.1);
+            text-shadow: 0 0 8px rgba(255,255,255,0.8);
+        }
+
+        .navbar-links a:hover::after {
+            width: 100%;
+        }
+
+        .navbar-links a:active {
+            transform: scale(0.95);
+        }
+
+        /* 主体内容样式 */
+        .main-content {
+            max-width: 1200px;
+            margin: 80px auto 0;
+            padding: 20px;
+        }
+
+        /* 英雄区 - 核心调整：简介标题添加渐变+发光效果 */
+        .hero {
+            text-align: center;
+            padding: 160px 20px 120px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* 动态渐变标题 + 同色系发光效果 */
+        .hero-title {
+            font-size: 72px;
+            margin-bottom: 35px;
+            /* 文本渐变（与原风格一致） */
+            background: linear-gradient(90deg, #e685b5, #4a90e2, #e685b5);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            /* 同渐变色系发光效果（粉+蓝双重发光，增强层次感） */
+            text-shadow: 0 0 12px rgba(230,133,181,0.6), 0 0 25px rgba(74,144,226,0.6);
+            animation: gradientMove 5s ease infinite; /* 渐变动画同步 */
+        }
+
+        /* 动态渐变动画（标题与按钮共用） */
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 客户端简介文本（替换为新内容） */
+        .hero-desc {
+            font-size: 22px;
+            max-width: 900px;
+            margin: 0 auto 45px; /* 保持底部间距，突出按钮 */
+            line-height: 1.8;
+            color: #8a9fc0; /* 低饱和蓝，与原风格一致 */
+        }
+
+        /* 与标题同色的动态渐变获取按钮 */
+        .hero-buy-btn {
+            display: inline-block;
+            padding: 16px 45px;
+            background: linear-gradient(90deg, #e685b5, #4a90e2, #e685b5);
+            background-size: 200% auto;
+            animation: gradientMove 5s ease infinite;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(138,159,192,0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .hero-buy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(138,159,192,0.4);
+            background: linear-gradient(90deg, #d878a6, #3d7bc7, #d878a6);
+            background-size: 200% auto;
+        }
+
+        .hero-buy-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 板块通用样式 */
+        .section {
+            margin: 80px 0;
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 下载区与前序板块间距放大 */
+        #purchase {
+            margin-top: 120px;
+            text-align: center; /* 确保按钮及下方文本居中 */
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 32px;
+            color: #8a9fc0; /* 低饱和蓝 */
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 3px;
+            background-color: #f0c8d8; /* 低饱和粉 */
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        /* 功能介绍 - 卡片布局 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: rgba(248,249,250,0.8);
+            border-radius: 8px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #c8d8f0; /* 低饱和蓝边框 */
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-card h3 {
+            color: #8a9fc0;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 特点区 */
+        .advantages-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            list-style: none;
+        }
+
+        .advantages-list li {
+            background-color: rgba(240,200,216,0.2); /* 低饱和粉背景 */
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .advantages-list li::before {
+            content: '✓';
+            color: #8a9fc0;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* 开发者板块样式 */
+        .developers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .dev-card-zyban {
+            background-color: rgba(138,159,192,0.1);
+            border-radius: 8px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .dev-card-zyban:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 15px rgba(138,159,192,0.2);
+        }
+
+        .dev-card-codx {
+            background-color: rgba(230,133,181,0.1);
+            border-radius: 8px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .dev-card-codx:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 15px rgba(230,133,181,0.2);
+        }
+
+        /* 开发者头像 */
+        .dev-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .avatar-zyban {
+            background-color: #8a9fc0; /* 低饱和蓝 */
+        }
+
+        .avatar-codx {
+            background-color: #e685b5; /* 低饱和粉 */
+        }
+
+        /* 开发者名称 */
+        .dev-name {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .name-zyban {
+            color: #8a9fc0;
+        }
+
+        .name-codx {
+            color: #e685b5;
+        }
+
+        /* 下载区 - 按钮样式保留，灰色提示文本 */
+        .buy-btn {
+            padding: 16px 45px;
+            background: linear-gradient(90deg, #e685b5, #4a90e2, #e685b5);
+            background-size: 200% auto;
+            animation: gradientMove 5s ease infinite;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(138,159,192,0.3);
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .buy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(138,159,192,0.4);
+            background: linear-gradient(90deg, #d878a6, #3d7bc7, #d878a6);
+            background-size: 200% auto;
+        }
+
+        .buy-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 灰色提示文本 */
+        .download-note {
+            color: #888; /* 灰色 */
+            font-size: 14px;
+            margin-top: 15px; /* 与按钮保持间距 */
+            text-align: center;
+        }
+
+        /* 页脚样式 - 全屏黑色无圆角 + 社交平台链接 */
+        .footer {
+            text-align: center;
+            color: white;
+            background-color: #000;
+            padding: 25px 20px;
+            margin-top: 20px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            border-radius: 0;
+            max-width: none;
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        /* 社交平台链接样式 */
+        .social-links {
+            margin-bottom: 20px; /* 与下方原有内容保持间距 */
+        }
+
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            margin: 0 15px; /* 平台之间横向间距 */
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        /* 悬停效果：放大+发光 */
+        .social-links a:hover {
+            transform: scale(1.2);
+            text-shadow: 0 0 12px rgba(255,255,255,0.9);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .navbar-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .navbar-links a {
+                margin: 0 10px;
+            }
+
+            .hero {
+                padding: 100px 20px 80px;
+            }
+
+            .hero-title {
+                font-size: 52px;
+                margin-bottom: 25px;
+                text-shadow: 0 0 8px rgba(230,133,181,0.6), 0 0 18px rgba(74,144,226,0.6); /* 移动端缩小发光范围 */
+            }
+
+            .hero-desc {
+                font-size: 18px;
+                max-width: 90%;
+                margin-bottom: 35px;
+            }
+
+            .hero-buy-btn,
+            .buy-btn {
+                padding: 14px 35px;
+                font-size: 18px;
+            }
+
+            .section {
+                padding: 25px;
+            }
+
+            #purchase {
+                margin-top: 100px;
+            }
+
+            .social-links a {
+                margin: 0 10px;
+                font-size: 16px;
+            }
+
+            .download-note {
+                font-size: 13px;
+                padding: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景滚动代码 -->
+    <div class="code-bg">
+        <pre><code>
+<span class="keyword">import</span> net.minecraft.client.Minecraft;
+<span class="keyword">import</span> com.Lime.module.*;
+<span class="keyword">import</span> com.Lime.anticheat.BypassEngine;
+
+<span class="keyword">public class</span> <span class="class">LimeCore</span> {
+    <span class="keyword">private final</span> <span class="variable">Minecraft</span> mc = Minecraft.getMinecraft();
+    <span class="keyword">private final</span> <span class="variable">ModuleManager</span> moduleManager = <span class="keyword">new</span> <span class="function">ModuleManager</span>();
+    <span class="keyword">private final</span> <span class="variable">BypassEngine</span> bypassEngine = <span class="keyword">new</span> <span class="function">BypassEngine</span>();
+
+    <span class="keyword">public void</span> <span class="function">initClient</span>() {
+        moduleManager.<span class="function">registerModule</span>(<span class="keyword">new</span> <span class="function">ESPModule</span>(<span class="string">"Player ESP"</span>, <span class="keyword">true</span>, Color.WHITE));
+        moduleManager.<span class="function">registerModule</span>(<span class="keyword">new</span> <span class="function">AimBotModule</span>(<span class="string">"Aim Bot"</span>, <span class="keyword">false</span>, 0.15f));
+        moduleManager.<span class="function">registerModule</span>(<span class="keyword">new</span> <span class="function">FlyModule</span>(<span class="string">"Creative Fly"</span>, <span class="keyword">false</span>, 0.6f));
+        moduleManager.<span class="function">registerModule</span>(<span class="keyword">new</span> <span class="function">FastBreakModule</span>(<span class="string">"Fast Break"</span>, <span class="keyword">true</span>));
+        moduleManager.<span class="function">registerModule</span>(<span class="keyword">new</span> <span class="function">NoFallModule</span>(<span class="string">"No Fall Damage"</span>, <span class="keyword">true</span>));
+
+        bypassEngine.<span class="function">enableBypass</span>(<span class="string">"Hypixel"</span>, <span class="string">"Mineplex"</span>, <span class="string">"CubeCraft"</span>);
+        bypassEngine.<span class="function">setSpoofDelay</span>(50);
+
+        <span class="function">loadConfig</span>(<span class="string">"Lime_config.json"</span>);
+        
+        System.<span class="function">out</span>.println(<span class="string">"[Lime] 客户端初始化完成 - 安全等级: HIGH"</span>);
+    }
+
+    <span class="keyword">private void</span> <span class="function">loadConfig</span>(<span class="variable">String</span> path) {
+        <span class="keyword">if</span> (mc.fileManager.<span class="function">exists</span>(path)) {
+            <span class="variable">Config</span> config = <span class="keyword">new</span> <span class="function">Config</span>(path);
+            moduleManager.<span class="function">applyConfig</span>(config);
+            bypassEngine.<span class="function">applyConfig</span>(config);
+        }
+    }
+
+    <span class="keyword">public boolean</span> <span class="function">isModuleEnabled</span>(<span class="variable">String</span> moduleName) {
+        <span class="keyword">return</span> moduleManager.<span class="function">getModuleByName</span>(moduleName).<span class="function">isEnabled</span>();
+    }
+}
+
+<span class="keyword">public abstract class</span> <span class="class">Module</span> {
+    <span class="keyword">private final</span> <span class="variable">String</span> name;
+    <span class="keyword">private boolean</span> enabled;
+
+    <span class="keyword">public</span> <span class="function">Module</span>(<span class="variable">String</span> name, <span class="keyword">boolean</span> enabled) {
+        <span class="keyword">this</span>.name = name;
+        <span class="keyword">this</span>.enabled = enabled;
+    }
+
+    <span class="keyword">public abstract void</span> <span class="function">onUpdate</span>();
+    <span class="keyword">public abstract void</span> <span class="function">onRender</span>();
+
+    <span class="keyword">public void</span> <span class="function">toggle</span>() {
+        <span class="keyword">this</span>.enabled = !<span class="keyword">this</span>.enabled;
+        <span class="keyword">if</span> (enabled) <span class="function">onEnable</span>();
+        <span class="keyword">else</span> <span class="function">onDisable</span>();
+    }
+
+    <span class="keyword">protected void</span> <span class="function">onEnable</span>() {}
+    <span class="keyword">protected void</span> <span class="function">onDisable</span>() {}
+}
+        </code></pre>
+    </div>
+
+    <!-- 顶栏导航 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-title">
+                <a href="#top">Lime Client</a>
+            </div>
+            <div class="navbar-links">
+                <a href="#features">功能介绍</a>
+                <a href="#advantages">核心特点</a>
+                <a href="#developers">核心开发者</a>
+                <a href="#purchase">立即获取</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 顶部锚点 -->
+    <div id="top"></div>
+
+    <!-- 主体内容 - 简介文本替换 + 标题渐变发光 -->
+    <div class="main-content">
+        <section class="hero">
+            <h2 class="hero-title"> Client</h2>
+            <!-- 替换后的简介文本 -->
+            <p class="hero-desc">Lime Client是为Minecraft打造的顶级作弊客户端，拥有注入/客户端双模式，支持多平台运行，稳定绕过所有服务器</p>
+            <a href="#purchase" class="hero-buy-btn">立即获取</a>
+        </section>
+
+        <!-- 核心功能区（卡片样式不变） -->
+        <section id="features" class="section">
+            <h2 class="section-title">核心功能</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>ESP 透视模块</h3>
+                    <p>支持玩家、生物、物品、容器透视，可自定义颜色与显示距离，穿透墙壁精准定位目标，适配不同亮度环境。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>智能自瞄系统</h3>
+                    <p>可调节瞄准速度、范围与平滑度，支持头部/身体锁定，自动忽略障碍物，搭配防抖动算法，避免被服务器检测。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>飞行与移动增强</h3>
+                    <p>提供生存/创造模式飞行，支持速度调节、空中悬停与无惯性移动，搭配快速奔跑与跳高等功能，大幅提升机动性。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>防封安全技术</h3>
+                    <p>内置多服务器防封引擎，自动适配 Hypixel、Mineplex 等平台检测规则，动态调整数据发送频率，降低封禁风险。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>快速操作模块</h3>
+                    <p>包含快速挖掘、自动攻击、自动补货、无坠落伤害等功能，简化操作流程，提升游戏效率，减少重复操作。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>自定义配置</h3>
+                    <p>支持保存/加载个人配置，可自定义模块快捷键、显示样式与参数，一键导出配置文件，方便多设备同步。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 核心特点区（样式不变） -->
+        <section id="advantages" class="section">
+            <h2 class="section-title">为何选择 Lime</h2>
+            <ul class="advantages-list">
+                <li>多版本支持：兼容 Minecraft 1.8.9 - 1.19.4，无需频繁切换客户端。</li>
+                <li>实时更新：每周更新模块功能与防封规则，适配服务器最新检测机制。</li>
+                <li>低资源占用：优化代码结构，内存占用低于 200MB，不影响游戏帧率。</li>
+                <li>简洁界面：扁平化设计，模块分类清晰，新手也能快速上手操作。</li>
+                <li>客服支持：提供 7x24 小时技术支持，解决使用中遇到的问题。</li>
+                <li>安全加密：客户端启动需验证授权，防止破解版流通，保护用户账号安全。</li>
+            </ul>
+        </section>
+
+        <!-- 核心开发者板块（样式不变） -->
+        <section id="developers" class="section">
+            <h2 class="section-title">核心开发者</h2>
+            <div class="developers-grid">
+                <div class="dev-card-zyban">
+                    <div class="dev-avatar avatar-zyban">Z</div>
+                    <div class="dev-info">
+                        <h3 class="dev-name name-zyban">ZYBAN</h3>
+                        <p>喵喵喵喵喵</p>
+                    </div>
+                </div>
+                <div class="dev-card-codx">
+                    <div class="dev-avatar avatar-codx">C</div>
+                    <div class="dev-info">
+                        <h3 class="dev-name name-codx">FJixOG</h3>
+                        <p>主开发者</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 下载区（按钮居中 + 灰色提示文本） -->
+        <section id="purchase" class="section">
+            <h2 class="section-title">立即获取</h2>
+            <a href="#pay" class="buy-btn">立即下载</a>
+            <p class="download-note">本客户端完全开源免费，禁止倒卖</p>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="social-links">
+            <a href="javascript:void(0)">Bilibili</a>
+            <a href="javascript:void(0)">Youtube</a>
+            <a href="javascript:void(0)">Github</a>
+            <a href="javascript:void(0)">Discord</a>
+            <a href="javascript:void(0)">X</a>
+        </div>
+        <p>© 2025 Lime Client - 仅供学习交流使用，请勿用于商业服务器</p>
+        <p>注意：使用作弊工具可能违反服务器规则，导致账号封禁，请谨慎使用</p>
+    </footer>
+</body>
+</html>
